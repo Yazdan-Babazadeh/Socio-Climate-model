@@ -1,94 +1,106 @@
 # Socio-Climate System Simulation and Visualization
 
-This repository contains the simulation code and visualization scripts from the manuscript:
+This repository contains the simulation and visualization code associated with:
 
 **"Social dynamics can delay or prevent climate tipping points by speeding the adoption of climate change mitigation."**  
-_Proceedings A, 2025_
+*Proceedings A, 2025*
 
 ## Overview
 
-This code models the coupled dynamics between:
-- Atmospheric carbon and other carbon reservoirs
-- Global temperature
-- Human mitigation behavior influenced by social learning, norms, and perceived risk
+The model couples atmospheric, ocean, vegetation, and soil carbon reservoirs with global temperature and mitigation adoption. Human behavior is influenced by social learning, mitigation cost, social norms, and perceived climate risk.
 
-The model simulates the interactions through a system of ODEs and generates visualizations for manuscript figures. 
+The dynamical system is integrated with scipy.integrate.solve_ivp using the BDF method.
 
-## Features
+## Repository structure
 
-- Simulates socio-climate dynamics using `scipy.integrate.solve_ivp`
-- Includes climate feedback mechanisms (vegetation decay, soil respiration, ocean uptake)
-- Models human behavior through imitation dynamics and a logistic risk perception model
-- Produces figures corresponding to the main and supplementary panels of the manuscript
+- **main.py** — command-line entry point for manuscript figures.
+- **model.py** — coupled six-state ODE model and simulation routine.
+- **parameters.py** — physical, carbon-cycle, climate, and behavioral constants.
+- **data_utils.py** — historical emissions loading and preprocessing.
+- **figures.py** — manuscript figures and parameter sweeps.
+- **global.1751_2017.csv** — historical global fossil-fuel CO2 emissions data.
+- **requirements.txt** — Python dependencies.
 
-## Dependencies
+The original single-file implementation, Code.py, remains available in the Git history. The last commit containing that original root-level implementation is:
 
-pip install numpy pandas matplotlib scipy
+d7ee3d9fae3334e93fc1ccc4715d0c57740bf1fa — **Update README.md**
 
-File Structure
-global.1751_2017.csv: Historical emissions data (global fossil fuel CO₂ emissions)
+## State variables
 
-main.py (or your script name): Contains all simulation logic and plotting code
+The six model states are:
 
-Model Components
-State variables:
-C_a (atmospheric carbon), C_o (ocean carbon), C_v (vegetation carbon),
-C_so (soil carbon), T (temperature anomaly), x (mitigation adoption)
+1. Atmospheric carbon, C_a
+2. Ocean carbon, C_o
+3. Vegetation carbon, C_v
+4. Soil carbon, C_so
+5. Temperature anomaly, T
+6. Mitigation adoption fraction, x
 
-Functions:
+The current code unpacks these states by name inside the derivative function instead of repeatedly using numeric array indices.
 
-simulate(k, beta, delta, r_max, T_critical, index): Runs the ODE solver
+## Installation
 
-AUC(Y, X): Computes area under the curve for comparisons
+~~~bash
+pip install -r requirements.txt
+~~~
 
-Plotting functions generate panels for the manuscript
+## Running the model
 
-Behavioral Dynamics:
+Generate all figures represented in the original script:
 
-Social learning rate: k
-
-Net mitigation cost: beta
-
-Strength of social norms: delta
-
-Perceived runaway tipping risk: controlled via r_max, T_critical
-
-How to Use
-Run Simulations and Generate All Figures:
-Simply execute the script from your terminal:
-
-bash
-Copy
-Edit
+~~~bash
 python main.py
-Customize Simulations:
-You can change parameters (e.g., k, beta, delta, r_max) directly in the plotting functions or loops to explore alternative dynamics.
+~~~
 
-Outputs:
+Generate a specific figure or parameter-sweep panel:
 
-.png images for all figures will be saved automatically (e.g., figure_for_paper.png)
+~~~bash
+python main.py --figure 1
+python main.py --figure 2-k
+python main.py --figure 2-beta
+python main.py --figure 2-delta
+python main.py --figure 3
+python main.py --figure 4
+python main.py --figure 5
+python main.py --figure 6
+~~~
 
-Plots include time evolution of variables and contour plots comparing intervention impacts
+Generated images are saved in the figures directory.
 
-Figures Generated
-Figure 1: Comparison of baseline vs modified socio-climate dynamics
+## Figure mapping
 
-Figure 2: Panels A–F — Sensitivity analysis for k, beta, delta, and r_max
+- **Figure 1** — baseline versus modified socio-climate trajectories, with mitigation adoption inset.
+- **Figure 2-k** — AUC sensitivity to social learning rate k and runaway feedback strength.
+- **Figure 2-beta** — sensitivity to mitigation cost beta and runaway feedback strength.
+- **Figure 2-delta** — AUC sensitivity to social norm strength delta and runaway feedback strength.
+- **Figure 3** — time to a 10% temperature divergence.
+- **Figure 4** — peak temperature over social learning and runaway feedback strength.
+- **Figure 5** — AUC difference over social learning and critical runaway temperature.
+- **Figure 6** — AUC difference over mitigation cost and runaway feedback strength.
 
-Figure 3: Time to tipping point
+## Stage-1 cleanup
 
-Figure 4: Peak temperature reached
+This version is a code-quality and reproducibility cleanup. It intentionally does **not** change the governing equations, parameter values, historical-emissions transformation, initial conditions, BDF solver choice, post-historical emissions formula, or parameter-sweep ranges.
 
-Figure 5: Impact of varying social learning and temperature threshold
+Changes include:
 
-Figure 6: Net mitigation cost vs runaway feedback strength
+- separating model equations, parameters, data loading, plotting, and execution;
+- removing repeated imports and repeated AUC definitions;
+- removing unused variables and stale commented exploratory code;
+- replacing positional simulation returns with named result fields;
+- documenting model terms and state variables;
+- fixing stale attempts to unpack eleven values from a seven-value simulation return;
+- supplying the missing runaway-mode argument in the mitigation-cost sweep using the active-runaway setting used by the surrounding modified-model sweeps;
+- computing Figure 3 tipping time directly from the solver time array rather than assuming exactly 100 array indices per year.
 
-Notes
-The simulation assumes time is discretized in 0.01-year steps for smooth plotting
+Potential methodological changes — including changing the emissions interpolation, tipping criterion, AUC definitions, runaway-feedback formulation, initial conditions, or solver configuration — are intentionally outside this cleanup.
 
-The emissions data is trimmed and scaled to align with model assumptions
+## Notes
 
-Each simulation runs for 400 years (from year 1800 to 2200)
+- Historical emissions remain annual piecewise-constant forcing, matching the original implementation.
+- Each default simulation spans 400 model years with 100 requested output points per year.
+- The post-historical emissions extension is preserved exactly from the original model.
 
-License
-This code is for academic and research use. Please cite the associated paper if used in any derivative work.
+## Citation
+
+If you use this repository in derivative academic work, please cite the associated paper.
